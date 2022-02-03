@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cstdlib>
 #include "util.h"
 
 void CompareVectors(const std::vector<double>& a,
@@ -45,4 +46,13 @@ TEST(UtilTest, ComputeBeta) {
   double result{22};
   double beta = ComputeBeta(beta1, beta2, c_inf);
   EXPECT_DOUBLE_EQ(result, beta);
+}
+
+// This test assumes that it is executed inside the build folder - the relative
+// path will not be resolved correctly if it is executed at a different place.
+TEST(UtilTest, ReadNPY) {
+  std::string filename{"../test/test-array.npy"};
+  std::vector<double> expected{1, 2, 3, 4, 5};
+  std::vector<double> actual = ReadNPYVector(filename);
+  CompareVectors(expected, actual);
 }

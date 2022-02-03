@@ -1,6 +1,7 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+#include <string>
 #include <vector>
 
 /// Computes the vector \gamma_k from the expansion coefficients d_k as in eq.
@@ -24,5 +25,13 @@ std::vector<double> ComputeBeta2(const std::vector<double>& d,
 /// Wohlmuth (2022).
 double ComputeBeta(const std::vector<double>& beta_1,
                    const std::vector<double>& beta_2, double c_inf);
+
+/// Read `.npy` file and return a vector. This function is intended to only read
+/// vectors, e.g. 1d arrays. Be careful with relative paths.
+// Remark: make sure to save the numpy array as double, i.e.
+// ```
+// np.save("my_filename", my_array.astype("float64"))
+// ```
+std::vector<double> ReadNPYVector(std::string filename);
 
 #endif
