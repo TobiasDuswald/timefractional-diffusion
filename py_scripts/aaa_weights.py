@@ -151,6 +151,7 @@ def main(argv):
 
     # Print approximation information
     print()
+    print("Alpha                     :", alpha)
     print("L1 error of approximation :", error_L1)
     print("L2 error (RMS) of approx. :", error_L2)
     print("Maximum absolute error    :", error_max)
@@ -171,6 +172,7 @@ def main(argv):
         path = os.getcwd() + "/data"
         if not os.path.exists(path):
             os.makedirs(path)
+        np.save("data/alpha", np.array([alpha]).astype("float64"), False)
         np.save("data/c", c, False)
         np.save("data/d", d, False)
         np.save("data/c_inf", c_infty, False)
