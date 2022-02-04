@@ -1,3 +1,10 @@
+// This script implements the modified Crank-Nicolson time integration scheme
+// of Khristenko and Wohlmuth (2021, arXiv:2102.05139v1) where the operator
+// F[u] is given by the Laplace operator.
+// Parts of the script are taken from ex16.cpp of MFEM.
+//
+// Authored by: Tobias Duswald
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
