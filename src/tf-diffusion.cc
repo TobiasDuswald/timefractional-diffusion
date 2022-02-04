@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
   double dt = 1.0e-2;
   double diffusion_constant = 1.0;
   double rel_tol = 1e-8;
+  const char *device_config = "omp";
 
   int precision = 8;
   cout.precision(precision);
@@ -52,12 +53,17 @@ int main(int argc, char *argv[]) {
   args.AddOption(&diffusion_constant, "-k", "--kappa", "Diffusion constant.");
   args.AddOption(&rel_tol, "-rtol", "--relative-tolerance",
                  "Relative tolerance of CGSolver.");
+  args.AddOption(&device_config, "-dev", "--device",
+                 "Device configuration string, see Device::Configure().");
   args.Parse();
   if (!args.Good()) {
     args.PrintUsage(cout);
     return 1;
   }
   args.PrintOptions(cout);
+
+  Device device(device_config);
+  device.Print();
 
   // 2. Either read or generate the mesh.
   Mesh *mesh = new Mesh();
