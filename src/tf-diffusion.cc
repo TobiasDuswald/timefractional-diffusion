@@ -1,7 +1,7 @@
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include "cmath"
 #include "mfem.hpp"
 #include "util.h"
 
@@ -19,7 +19,8 @@ int main(int argc, char *argv[]) {
   int ref_levels = 2;
   int order = 2;
   int vis_steps = 5;
-  double t_final = 0.5;
+  int max_iter = 100;
+  double t_final = 1.0;
   double dt = 1.0e-2;
   double diffusion_constant = 1.0;
   double rel_tol = 1e-8;
@@ -43,6 +44,8 @@ int main(int argc, char *argv[]) {
                  "Order (degree) of the finite elements.");
   args.AddOption(&vis_steps, "-vs", "--visualization-steps",
                  "Visualize every n-th timestep.");
+  args.AddOption(&max_iter, "-mi", "--maximal-iterations",
+                 "Maximal number of iterations for CG solver.");
   args.AddOption(&t_final, "-tf", "--t-final", "Final time; start time is 0.");
   args.AddOption(&dt, "-dt", "--time-step",
                  "Time step. Corresponds to h in publication.");
@@ -153,9 +156,9 @@ int main(int argc, char *argv[]) {
 
   // 9. Compute FE coefficient vectors and matrices
 
-  // Boundary - this list remains empty for pure Neumann b.c.
-  // ToDo: set Direchlet boundary = 0
-  Array<int> ess_tdof_list;
+  // Boundary - Direchlet 0 on boudary.
+  Array<int> boundary_dofs;
+  fespace.GetBoundaryTrueDofs(boundary_dofs);
 
   // Mass matrix
   BilinearForm M(&fespace);
@@ -163,7 +166,7 @@ int main(int argc, char *argv[]) {
   M.AddDomainIntegrator(new MassIntegrator());
   M.SetAssemblyLevel(AssemblyLevel::LEGACY);
   M.Assemble();
-  M.FormSystemMatrix(ess_tdof_list, Mmat);
+  M.FormSystemMatrix(boundary_dofs, Mmat);
 
   // Stiffness matrix
   BilinearForm D(&fespace);
@@ -172,7 +175,7 @@ int main(int argc, char *argv[]) {
   D.AddDomainIntegrator(new DiffusionIntegrator(d_coeff));
   D.SetAssemblyLevel(AssemblyLevel::LEGACY);
   D.Assemble();
-  D.FormSystemMatrix(ess_tdof_list, Dmat);
+  D.FormSystemMatrix(boundary_dofs, Dmat);
 
   // Matrix T that is (M + beta D). Add(...) creates on heat - needs to be
   // deleted manually at the end.
@@ -185,7 +188,7 @@ int main(int argc, char *argv[]) {
   T_solver.iterative_mode = false;
   T_solver.SetRelTol(rel_tol);
   T_solver.SetAbsTol(0.0);
-  T_solver.SetMaxIter(100);
+  T_solver.SetMaxIter(max_iter);
   T_solver.SetPrintLevel(0);
   T_solver.SetPreconditioner(T_prec);  // To be called before SetOperator.
   T_solver.SetOperator(*Tmat);
@@ -200,9 +203,7 @@ int main(int argc, char *argv[]) {
   for (size_t i = 0; i < d.size(); i++) {
     Vector tmp_1{fe_size};  // Size of DoF
     tmp_1 *= 0.0;           // Initialize to Zero
-    Vector tmp_2{tmp_1};
     w_1.push_back(tmp_1);
-    w_2.push_back(tmp_2);
   }
 
   // Additional vector for u^{n+1}
@@ -232,15 +233,16 @@ int main(int argc, char *argv[]) {
     T_solver.Mult(rhs, u_new);
     // 10.4 Update w_2
     for (size_t k = 0; k < w_1.size(); k++) {
-      w_2[k] = w_1[k];
       Vector tmp1{fe_size};
       Dmat.Mult(u_new, tmp1);
       tmp1 *= beta_1[k];
-      w_2[k] += tmp1;
+      w_1[k] += tmp1;
       Dmat.Mult(u, tmp1);
       tmp1 *= beta_2[k];
-      w_2[k] += tmp1;
+      w_1[k] += tmp1;
     }
+    // 10.5 Update time
+    t += dt;
 
     // Visualization
     if (last_step || (ti % vis_steps) == 0) {
@@ -279,4 +281,28 @@ double SetInitalValues(const Vector &x) {
     result *= std::sin(pi * x[i]);
   }
   return result;
+
+  // // Code snipped needed for both options below to compute distance.
+  // int dimension{x.Size()};
+  // double distance{0.0};
+  // const double pi = std::acos(-1);
+  // for (int i = 0; i < dimension; i++) {
+  //   distance += std::pow(x[i] - 0.5, 2);
+  // }
+  // distance = std::sqrt(distance);
+
+  // // Peak of 1 in a certain area in the middle
+  // if (distance > 0.15) {
+  //   return 0;
+  // } else {
+  //   return 1;
+  // }
+
+  // // Peak of 1 at a certain point in the middle decreasing linearly to the
+  // // Surrounding.
+  // if (distance < 0.2) {
+  //   return 0.2 - distance;
+  // } else {
+  //   return 0;
+  // }
 }
