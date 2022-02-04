@@ -96,13 +96,15 @@ int main(int argc, char *argv[]) {
   }
 
   // 4. Read the expansion coefficients c_k, d_k, and c_/inf
-  std::string filename_d{"../data/d.npy"};
-  std::string filename_c{"../data/c.npy"};
-  std::string filename_cinf{"../data/c_inf.npy"};
-  std::vector<double> d = ReadNPYVector(filename_d);
-  std::vector<double> c = ReadNPYVector(filename_d);
-  std::vector<double> cinf = ReadNPYVector(filename_d);
-  double c_inf = cinf[0];
+  const std::string filename_alpha{"../data/alpha.npy"};
+  const std::string filename_d{"../data/d.npy"};
+  const std::string filename_c{"../data/c.npy"};
+  const std::string filename_cinf{"../data/c_inf.npy"};
+  const std::vector<double> alpha_vec = ReadNPYVector(filename_alpha);
+  const std::vector<double> d = ReadNPYVector(filename_d);
+  const std::vector<double> c = ReadNPYVector(filename_c);
+  const std::vector<double> cinf = ReadNPYVector(filename_cinf);
+  const double c_inf = cinf[0];
 
   // 5. Define the vector finite element space representing the current and the
   //    initial temperature, u_ref.
@@ -110,7 +112,9 @@ int main(int argc, char *argv[]) {
   FiniteElementSpace fespace(mesh, &fe_coll);
 
   int fe_size = fespace.GetTrueVSize();
-  cout << "Number of DoFs: " << fe_size << endl;
+  cout << "Number of Elements : " << mesh->GetNE() << endl;
+  cout << "Number of DoFs     : " << fe_size << endl;
+  cout << "Value of alpha     : " << alpha_vec[0] << endl;
 
   GridFunction u_gf(&fespace);
 
@@ -155,10 +159,10 @@ int main(int argc, char *argv[]) {
   }
 
   // 8. Compute the relevant coefficients of the fractal time integration.
-  std::vector<double> gamma = ComputeGamma(d, dt);
-  std::vector<double> beta_1 = ComputeBeta1(d, c, gamma, dt);
-  std::vector<double> beta_2 = ComputeBeta2(d, c, gamma, dt);
-  double beta = ComputeBeta(beta_1, beta_2, c_inf);
+  const std::vector<double> gamma = ComputeGamma(d, dt);
+  const std::vector<double> beta_1 = ComputeBeta1(d, c, gamma, dt);
+  const std::vector<double> beta_2 = ComputeBeta2(d, c, gamma, dt);
+  const double beta = ComputeBeta(beta_1, beta_2, c_inf);
 
   // 9. Compute FE coefficient vectors and matrices
 
@@ -242,10 +246,10 @@ int main(int argc, char *argv[]) {
       Vector tmp1{fe_size};
       Dmat.Mult(u_new, tmp1);
       tmp1 *= beta_1[k];
-      w_1[k] += tmp1;
+      w_1[k] -= tmp1;
       Dmat.Mult(u, tmp1);
       tmp1 *= beta_2[k];
-      w_1[k] += tmp1;
+      w_1[k] -= tmp1;
     }
     // 10.5 Update time
     t += dt;
@@ -287,6 +291,8 @@ double SetInitalValues(const Vector &x) {
     result *= std::sin(pi * x[i]);
   }
   return result;
+
+  // // Alternative initial conditions below.
 
   // // Code snipped needed for both options below to compute distance.
   // int dimension{x.Size()};
