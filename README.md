@@ -1,7 +1,9 @@
 # Timefractional Diffusion
 
 This repository provides a MFEM based implementation to simulate the 
-time-fractional heat equation. We use MFEM for the spatial discretization
+time-fractional heat equation
+$$ ((\partial_t)^\alpha  - \nabla \cdot D \nabla) u = 0$$ 
+with homogenous Dirichlet BC. We use MFEM for the spatial discretization
 and to compute the mass and stiffness matrix. For the time integration, we 
 employ the modified Crank-Nicholson algorithm introduce by 
 [Khristenko and Wohlmuth (2021)](https://arxiv.org/abs/2102.05139) (Lemma 5.6).
@@ -63,7 +65,7 @@ ctest  # run the few available tests to avoid bad surprises
 Start glvis in server mode to listen before running `./tf-diffusion`.
 
 ```bash
-./glvis/build/glvis -mac
+./glvis/build/glvis
 ```
 
 ## Over all workflow
