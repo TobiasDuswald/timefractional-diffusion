@@ -72,7 +72,7 @@ Start glvis in server mode to listen before running `./tf-diffusion`.
 
 ```bash
 python py_scripts/aaa_weights.py --alpha 0.5 # compute expansion coefficients
-./glvis/build/glvis -mac # start glvis in different terminal
+./glvis/build/glvis # start glvis in different terminal
 cd build
 ./tf-diffusion -d 1 -r 7 -mi 500 # solve PDE numerically with coefficients
 cd ..
