@@ -2,7 +2,7 @@
 
 This repository provides a MFEM based implementation to simulate the 
 time-fractional heat equation
-$$ ((\partial_t)^\alpha  - \nabla \cdot D \nabla) u = 0$$ 
+$$((\partial_t)^\alpha  - \nabla \cdot D \nabla) u = 0$$ 
 with homogenous Dirichlet BC. We use MFEM for the spatial discretization
 and to compute the mass and stiffness matrix. For the time integration, we 
 employ the modified Crank-Nicholson algorithm introduce by 
